@@ -3,12 +3,15 @@
 namespace Whilesmart\Products\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Whilesmart\OwnerAccess\Concerns\AuthorizesOwnerRequest;
 
 class UpdateProductRequest extends FormRequest
 {
+    use AuthorizesOwnerRequest;
+
     public function authorize(): bool
     {
-        return true;
+        return $this->authorizeOwnerOfBoundModel('product');
     }
 
     public function rules(): array

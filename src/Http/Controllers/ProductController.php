@@ -5,6 +5,7 @@ namespace Whilesmart\Products\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Whilesmart\OwnerAccess\Concerns\AuthorizesOwnerController;
 use Whilesmart\Products\Http\Requests\StoreProductRequest;
 use Whilesmart\Products\Http\Requests\UpdateProductRequest;
 use Whilesmart\Products\Http\Resources\ProductResource;
@@ -12,13 +13,15 @@ use Whilesmart\Products\Models\Product;
 
 class ProductController extends Controller
 {
+    use AuthorizesOwnerController;
+
     public function index(Request $request): JsonResponse
     {
-        $query = Product::query();
+        $query = $this->scopeAccessibleOwners(Product::query(), $request->user());
 
         if ($request->filled('owner_type') && $request->filled('owner_id')) {
             $query->where('owner_type', $request->input('owner_type'))
-                  ->where('owner_id', $request->input('owner_id'));
+                ->where('owner_id', $request->input('owner_id'));
         }
 
         if ($request->filled('type')) {
@@ -37,8 +40,8 @@ class ProductController extends Controller
             $term = $request->input('q');
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'ilike', "%{$term}%")
-                  ->orWhere('sku', 'ilike', "%{$term}%")
-                  ->orWhere('description', 'ilike', "%{$term}%");
+                    ->orWhere('sku', 'ilike', "%{$term}%")
+                    ->orWhere('description', 'ilike', "%{$term}%");
             });
         }
 
@@ -61,8 +64,10 @@ class ProductController extends Controller
         ], 201);
     }
 
-    public function show(Product $product): JsonResponse
+    public function show(Product $product, Request $request): JsonResponse
     {
+        $this->authorizeAccessTo($product, $request->user());
+
         return response()->json([
             'success' => true,
             'data' => new ProductResource($product),
@@ -79,8 +84,9 @@ class ProductController extends Controller
         ]);
     }
 
-    public function destroy(Product $product): JsonResponse
+    public function destroy(Product $product, Request $request): JsonResponse
     {
+        $this->authorizeAccessTo($product, $request->user());
         $product->delete();
 
         return response()->json([
