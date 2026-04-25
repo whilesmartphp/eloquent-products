@@ -10,7 +10,7 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.0|^12.0",
-        "whilesmart/eloquent-invoices": "dev-main",
+        "whilesmart/eloquent-invoices": "dev-dev",
         "whilesmart/eloquent-owner-access": "dev-dev"
     },
     "require-dev": {
